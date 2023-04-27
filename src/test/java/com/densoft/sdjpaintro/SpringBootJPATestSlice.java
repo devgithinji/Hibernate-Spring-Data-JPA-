@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.annotation.Rollback;
@@ -16,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DataJpaTest
 @ComponentScan(basePackages = {"com.densoft.sdjpaintro.bootstrap"})
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class SpringBootJPATestSlice {
     @Autowired
     BookRepository bookRepository;
@@ -26,7 +28,7 @@ public class SpringBootJPATestSlice {
     @Test
     void testJpaTestSplice() {
         long countBefore = bookRepository.count();
-        bookRepository.save(new Book("My Book", "1123242", "Self"));
+        bookRepository.save(new Book("My Book", "1123242", "Self",null));
         long countAfter = bookRepository.count();
         assertThat(countBefore).isLessThan(countAfter);
     }
