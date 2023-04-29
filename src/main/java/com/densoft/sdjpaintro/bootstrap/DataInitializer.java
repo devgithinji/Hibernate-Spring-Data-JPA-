@@ -1,5 +1,6 @@
 package com.densoft.sdjpaintro.bootstrap;
 
+import com.densoft.sdjpaintro.domain.Author;
 import com.densoft.sdjpaintro.domain.AuthorUuid;
 import com.densoft.sdjpaintro.domain.Book;
 import com.densoft.sdjpaintro.domain.BookUuid;
@@ -48,6 +49,7 @@ public class DataInitializer implements CommandLineRunner {
         bookUuid.setTitle("All About UUIDs");
         BookUuid savedBookUuid = bookUuidRepository.save(bookUuid);
         System.out.printf("Saved Book UUID: %s", savedBookUuid.getId());
+
 
     }
 }
