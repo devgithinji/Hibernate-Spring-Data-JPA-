@@ -1,29 +1,29 @@
 package com.densoft.sdjpaintro.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
-public class Book {
+public class BookUuid {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id",columnDefinition = "VARBINARY(16)",nullable = false, updatable = false)
+    private UUID id;
     private String title;
     private String isbn;
     private String publisher;
 
-    private Long authorId;
-
-    public Book() {
+    public BookUuid() {
     }
 
-    public Book(String title, String isbn, String publisher,Long authorId) {
+    public BookUuid(String title, String isbn, String publisher) {
         this.title = title;
         this.isbn = isbn;
         this.publisher = publisher;
-        this.authorId = authorId;
     }
 
     @Override
@@ -31,7 +31,7 @@ public class Book {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Book book = (Book) o;
+        BookUuid book = (BookUuid) o;
 
         return Objects.equals(id, book.id);
     }
@@ -41,11 +41,11 @@ public class Book {
         return id != null ? id.hashCode() : 0;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -73,11 +73,4 @@ public class Book {
         this.publisher = publisher;
     }
 
-    public Long getAuthorId() {
-        return authorId;
-    }
-
-    public void setAuthorId(Long authorId) {
-        this.authorId = authorId;
-    }
 }
