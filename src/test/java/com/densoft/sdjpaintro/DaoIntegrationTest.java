@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @DataJpaTest
 @ComponentScan(basePackages = {"com.densoft.sdjpaintro.dao"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class AuthorDaoIntegrationTest {
+public class DaoIntegrationTest {
     @Autowired
     AuthorDao authorDao;
     @Autowired
@@ -93,12 +93,12 @@ public class AuthorDaoIntegrationTest {
         author.setLastName("t");
 
         Author saved = authorDao.saveNewAuthor(author);
-
+        System.out.println(saved.getId());
         authorDao.deleteAuthorById(saved.getId());
 
-        assertThrows(TransientDataAccessResourceException.class, () -> {
-            authorDao.getById(saved.getId());
-        });
+        Author deleted = authorDao.getById(saved.getId());
+
+        assertThat(deleted).isNull();
     }
 
     @Test
@@ -120,6 +120,7 @@ public class AuthorDaoIntegrationTest {
         author.setLastName("Thompson");
         Author savedAuthor = authorDao.saveNewAuthor(author);
         assertThat(savedAuthor).isNotNull();
+        assertThat(savedAuthor.getId()).isNotNull();
     }
 
     @Test

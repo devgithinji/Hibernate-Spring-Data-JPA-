@@ -1,6 +1,10 @@
 package com.densoft.sdjpaintro.dao;
 
 import com.densoft.sdjpaintro.domain.Author;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.TypedQuery;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -12,50 +16,69 @@ import java.sql.*;
 @Component
 public class AuthorDaoImpl implements AuthorDao {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final EntityManagerFactory entityManagerFactory;
 
-    public AuthorDaoImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public AuthorDaoImpl(EntityManagerFactory entityManagerFactory) {
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     @Override
     public Author getById(Long id) {
-        String sql = "SELECT author.id as id, first_name, last_name, book.id as book_id, book.isbn, book.publisher," +
-                " book.title FROM author LEFT OUTER JOIN book ON author.id = book.author_id WHERE author.id = ?";
-
-        // return jdbcTemplate.queryForObject("SELECT * FROM author WHERE id  = ?", getRowMapper(), id);
-        return jdbcTemplate.query(sql, new AuthorExtractor(), id);
+        try {
+            return getEntityManager().find(Author.class, id);
+        } catch (NoResultException resultException) {
+            return null;
+        }
     }
 
 
     @Override
     public Author findAuthorByName(String firstName, String lastName) {
         try {
-            return jdbcTemplate.queryForObject("SELECT * FROM author WHERE first_name  = ? AND last_name = ?", getRowMapper(), firstName, lastName);
-        } catch (EmptyResultDataAccessException e) {
+            TypedQuery<Author> query = getEntityManager().createQuery("SELECT a FROM Author a WHERE a.firstName = " +
+                    ":first_name AND a.lastName = :last_name", Author.class);
+            query.setParameter("first_name", firstName);
+            query.setParameter("last_name", lastName);
+            return query.getSingleResult();
+        } catch (NoResultException exception) {
             return null;
         }
     }
 
     @Override
     public Author saveNewAuthor(Author author) {
-        jdbcTemplate.update("INSERT INTO author (first_name, last_name) VALUES (?,?)", author.getFirstName(), author.getLastName());
-        Long createdId = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        return this.getById(createdId);
+        EntityManager entityManager = getEntityManager();
+        entityManager.getTransaction().begin();
+        entityManager.joinTransaction();
+        entityManager.persist(author);
+        entityManager.flush();
+        entityManager.getTransaction().commit();
+        return author;
     }
 
     @Override
     public Author updateAuthor(Author author) {
-        jdbcTemplate.update("UPDATE author SET first_name = ?, last_name = ? WHERE id = ?", author.getFirstName(), author.getLastName(), author.getId());
-        return this.getById(author.getId());
+        EntityManager entityManager = getEntityManager();
+        entityManager.joinTransaction();
+        entityManager.merge(author);
+        entityManager.flush();
+        entityManager.clear();
+        return author;
     }
 
     @Override
     public void deleteAuthorById(Long id) {
-        jdbcTemplate.update("DELETE FROM author WHERE id = ?", id);
+        EntityManager entityManager = getEntityManager();
+        entityManager.getTransaction().begin();
+        Author author = entityManager.find(Author.class, id);
+        entityManager.remove(author);
+        entityManager.flush();
+        entityManager.getTransaction().commit();
     }
 
-    private RowMapper<Author> getRowMapper() {
-        return new AuthorMapper();
+
+    private EntityManager getEntityManager() {
+        return entityManagerFactory.createEntityManager();
     }
+
 }
