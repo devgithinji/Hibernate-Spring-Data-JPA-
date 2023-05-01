@@ -4,16 +4,15 @@ import com.densoft.sdjpaintro.dao.AuthorDao;
 import com.densoft.sdjpaintro.dao.BookDao;
 import com.densoft.sdjpaintro.domain.Author;
 import com.densoft.sdjpaintro.domain.Book;
+import jakarta.persistence.EntityNotFoundException;
 import net.bytebuddy.utility.RandomString;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,14 +29,6 @@ public class DaoIntegrationTest {
     BookDao bookDao;
 
     @Test
-    void findAllAuthors() {
-        List<Author> authors = authorDao.findAll();
-
-        assertThat(authors).isNotNull();
-        assertThat(authors.size()).isGreaterThan(0);
-    }
-
-    @Test
     void testFindBookByISBN() {
         Book newBook = new Book();
         newBook.setIsbn("1234" + RandomString.make());
@@ -50,17 +41,7 @@ public class DaoIntegrationTest {
         assertThat(fetchedBook).isNotNull();
     }
 
-    @Test
-    void testListAuthorByLastNameLike() {
-        Author author = new Author();
-        author.setFirstName("test");
-        author.setLastName("Walls");
-        authorDao.saveNewAuthor(author);
 
-        List<Author> authors = authorDao.listAuthorByLastNameLike("Wall");
-        assertThat(authors).isNotNull();
-        assertThat(authors.size()).isGreaterThan(0);
-    }
 
     @Test
     void testDeleteBook() {
@@ -73,7 +54,7 @@ public class DaoIntegrationTest {
 
         bookDao.deleteBookById(saved.getId());
 
-        assertThat(authorDao.getById(saved.getId())).isNull();
+        assertThat(bookDao.getById(saved.getId())).isNull();
     }
 
     @Test
@@ -129,9 +110,9 @@ public class DaoIntegrationTest {
         System.out.println(saved.getId());
         authorDao.deleteAuthorById(saved.getId());
 
-        Author deleted = authorDao.getById(saved.getId());
-
-        assertThat(deleted).isNull();
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
+            authorDao.getById(saved.getId());
+        });
     }
 
     @Test
@@ -156,22 +137,19 @@ public class DaoIntegrationTest {
         assertThat(savedAuthor.getId()).isNotNull();
     }
 
-    @Test
-    void testGetAuthorByNameCriteria() {
-        Author author = authorDao.findAuthorByNameCriteria("Craig", "Walls");
-        assertThat(author).isNotNull();
-    }
 
-    @Test
-    void testGetAuthorByNameNative() {
-        Author author = authorDao.findAuthorByNameNative("Craig", "Walls");
-        assertThat(author).isNotNull();
-    }
 
     @Test
     void testGetAuthorByName() {
         Author author = authorDao.findAuthorByName("Craig", "Walls");
         assertThat(author).isNotNull();
+    }
+
+    @Test
+    void testGetAuthorByNameNotFound() {
+        assertThrows(EntityNotFoundException.class, () -> {
+            Author author = authorDao.findAuthorByName("foo", "bar");
+        });
     }
 
     @Test

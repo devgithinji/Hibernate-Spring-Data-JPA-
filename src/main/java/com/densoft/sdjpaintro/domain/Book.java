@@ -3,7 +3,7 @@ package com.densoft.sdjpaintro.domain;
 import jakarta.persistence.*;
 
 import java.util.Objects;
-
+@NamedQuery(name = "Book.jpaNamed", query = "FROM Book b WHERE b.title = :title")
 @Entity
 public class Book {
     @Id
