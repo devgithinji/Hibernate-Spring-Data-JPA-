@@ -13,12 +13,10 @@ import java.util.Objects;
 @Entity
 public class Author {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String firstName;
     private String lastName;
-    @Transient
-    private List<Book> books;
 
     public Long getId() {
         return id;
@@ -44,13 +42,6 @@ public class Author {
         this.lastName = lastName;
     }
 
-    public List<Book> getBooks() {
-        return books;
-    }
-
-    public void setBooks(List<Book> books) {
-        this.books = books;
-    }
 
     @Override
     public boolean equals(Object o) {

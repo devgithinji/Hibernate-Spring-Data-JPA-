@@ -73,9 +73,7 @@ public class DaoIntegrationTest {
 
         bookDao.deleteBookById(saved.getId());
 
-        assertThrows(EmptyResultDataAccessException.class, () -> {
-            bookDao.getById(saved.getId());
-        });
+        assertThat(authorDao.getById(saved.getId())).isNull();
     }
 
     @Test
@@ -111,7 +109,7 @@ public class DaoIntegrationTest {
     void testGetBookByName() {
         Book book = bookDao.findBookByTitle("Clean Code");
 
-        assertThat(book).isNull();
+        assertThat(book).isNotNull();
     }
 
     @Test
@@ -167,13 +165,13 @@ public class DaoIntegrationTest {
     @Test
     void testGetAuthorByNameNative() {
         Author author = authorDao.findAuthorByNameNative("Craig", "Walls");
-        assertThat(author).isNull();
+        assertThat(author).isNotNull();
     }
 
     @Test
     void testGetAuthorByName() {
         Author author = authorDao.findAuthorByName("Craig", "Walls");
-        assertThat(author).isNull();
+        assertThat(author).isNotNull();
     }
 
     @Test
