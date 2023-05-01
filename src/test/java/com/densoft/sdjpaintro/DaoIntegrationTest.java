@@ -4,14 +4,16 @@ import com.densoft.sdjpaintro.dao.AuthorDao;
 import com.densoft.sdjpaintro.dao.BookDao;
 import com.densoft.sdjpaintro.domain.Author;
 import com.densoft.sdjpaintro.domain.Book;
+import net.bytebuddy.utility.RandomString;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -21,11 +23,44 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @DataJpaTest
 @ComponentScan(basePackages = {"com.densoft.sdjpaintro.dao"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class AuthorDaoIntegrationTest {
+public class DaoIntegrationTest {
     @Autowired
     AuthorDao authorDao;
     @Autowired
     BookDao bookDao;
+
+    @Test
+    void findAllAuthors() {
+        List<Author> authors = authorDao.findAll();
+
+        assertThat(authors).isNotNull();
+        assertThat(authors.size()).isGreaterThan(0);
+    }
+
+    @Test
+    void testFindBookByISBN() {
+        Book newBook = new Book();
+        newBook.setIsbn("1234" + RandomString.make());
+        newBook.setTitle("ISBN TEST");
+
+        Book saved = bookDao.saveNewBook(newBook);
+
+        Book fetchedBook = bookDao.findByISBN(newBook.getIsbn());
+
+        assertThat(fetchedBook).isNotNull();
+    }
+
+    @Test
+    void testListAuthorByLastNameLike() {
+        Author author = new Author();
+        author.setFirstName("test");
+        author.setLastName("Walls");
+        authorDao.saveNewAuthor(author);
+
+        List<Author> authors = authorDao.listAuthorByLastNameLike("Wall");
+        assertThat(authors).isNotNull();
+        assertThat(authors.size()).isGreaterThan(0);
+    }
 
     @Test
     void testDeleteBook() {
@@ -93,12 +128,12 @@ public class AuthorDaoIntegrationTest {
         author.setLastName("t");
 
         Author saved = authorDao.saveNewAuthor(author);
-
+        System.out.println(saved.getId());
         authorDao.deleteAuthorById(saved.getId());
 
-        assertThrows(TransientDataAccessResourceException.class, () -> {
-            authorDao.getById(saved.getId());
-        });
+        Author deleted = authorDao.getById(saved.getId());
+
+        assertThat(deleted).isNull();
     }
 
     @Test
@@ -120,6 +155,19 @@ public class AuthorDaoIntegrationTest {
         author.setLastName("Thompson");
         Author savedAuthor = authorDao.saveNewAuthor(author);
         assertThat(savedAuthor).isNotNull();
+        assertThat(savedAuthor.getId()).isNotNull();
+    }
+
+    @Test
+    void testGetAuthorByNameCriteria() {
+        Author author = authorDao.findAuthorByNameCriteria("Craig", "Walls");
+        assertThat(author).isNotNull();
+    }
+
+    @Test
+    void testGetAuthorByNameNative() {
+        Author author = authorDao.findAuthorByNameNative("Craig", "Walls");
+        assertThat(author).isNull();
     }
 
     @Test

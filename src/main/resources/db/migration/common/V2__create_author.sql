@@ -9,3 +9,5 @@ CREATE TABLE author
 create table author_seq (
     next_val bigint
 ) engine=InnoDB;
+
+insert into author_seq values ( 1 );

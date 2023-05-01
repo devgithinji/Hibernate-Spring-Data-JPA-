@@ -1,60 +1,87 @@
 package com.densoft.sdjpaintro.dao;
 
 import com.densoft.sdjpaintro.domain.Book;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Component;
-
-import javax.sql.DataSource;
-import java.sql.*;
 
 @Component
 public class BookDaoImpl implements BookDao {
-    private final JdbcTemplate jdbcTemplate;
 
-    public BookDaoImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    private final EntityManagerFactory entityManagerFactory;
+
+    public BookDaoImpl(EntityManagerFactory entityManagerFactory) {
+        this.entityManagerFactory = entityManagerFactory;
+    }
+
+    @Override
+    public Book findByISBN(String isbn) {
+
+        try (EntityManager em = getEntityManager()) {
+            TypedQuery<Book> query = em.createQuery("SELECT b FROM Book b WHERE b.isbn = :isbn", Book.class);
+            query.setParameter("isbn", isbn);
+
+            return query.getSingleResult();
+        }
     }
 
     @Override
     public Book getById(Long id) {
-        return jdbcTemplate.queryForObject("SELECT * FROM book where id = ?", getBookMapper(), id);
+        EntityManager em = getEntityManager();
+        Book book = getEntityManager().find(Book.class, id);
+        em.close();
+        return book;
     }
 
 
     @Override
     public Book findBookByTitle(String title) {
-        try {
-            return jdbcTemplate.queryForObject("SELECT * FROM book where title = ?", getBookMapper(), title);
-        }catch (EmptyResultDataAccessException e) {
-            return null;
-        }
+        EntityManager em = getEntityManager();
+        TypedQuery<Book> query = em
+                .createQuery("SELECT b FROM Book b where b.title = :title", Book.class);
+        query.setParameter("title", title);
+        Book book = query.getSingleResult();
+        em.close();
+        return book;
     }
 
     @Override
     public Book saveNewBook(Book book) {
-        jdbcTemplate.update("INSERT INTO book (isbn, publisher, title, author_id) VALUES (?, ?, ?, ?)",
-                book.getIsbn(), book.getPublisher(), book.getTitle(), book.getAuthorId());
-
-        Long createdId = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-
-        return this.getById(createdId);
+        EntityManager em = getEntityManager();
+        em.getTransaction().begin();
+        em.persist(book);
+        em.flush();
+        em.getTransaction().commit();
+        em.close();
+        return book;
     }
 
     @Override
     public Book updateBook(Book book) {
-        jdbcTemplate.update("UPDATE book set isbn = ?, publisher = ?, title = ?, author_id = ? where id = ?",
-                book.getIsbn(), book.getPublisher(), book.getTitle(), book.getAuthorId(), book.getId());
-
-        return this.getById(book.getId());
+        EntityManager em = getEntityManager();
+        em.getTransaction().begin();
+        em.merge(book);
+        em.flush();
+        em.clear();
+        Book savedBook = em.find(Book.class, book.getId());
+        em.getTransaction().commit();
+        em.close();
+        return savedBook;
     }
 
     @Override
     public void deleteBookById(Long id) {
-        jdbcTemplate.update("DELETE from book where id = ?", id);
+        EntityManager em = getEntityManager();
+        em.getTransaction().begin();
+        Book book = em.find(Book.class, id);
+        em.remove(book);
+        em.getTransaction().commit();
+        em.close();
     }
 
-    private BookMapper getBookMapper(){
-        return new BookMapper();
+    private EntityManager getEntityManager(){
+        return entityManagerFactory.createEntityManager();
     }
+
 }
