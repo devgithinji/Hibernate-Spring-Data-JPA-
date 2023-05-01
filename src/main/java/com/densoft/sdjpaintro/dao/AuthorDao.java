@@ -9,5 +9,5 @@ public interface AuthorDao {
 
     Author updateAuthor(Author saved);
 
-    Author deleteAuthorById(Long id);
+    void deleteAuthorById(Long id);
 }

@@ -9,9 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @ActiveProfiles("local")
@@ -35,9 +38,9 @@ public class AuthorDaoIntegrationTest {
 
         bookDao.deleteBookById(saved.getId());
 
-        Book deleted = bookDao.getById(saved.getId());
-
-        assertThat(deleted).isNull();
+        assertThrows(EmptyResultDataAccessException.class, () -> {
+            bookDao.getById(saved.getId());
+        });
     }
 
     @Test
@@ -91,9 +94,11 @@ public class AuthorDaoIntegrationTest {
 
         Author saved = authorDao.saveNewAuthor(author);
 
-        Author deleted = authorDao.deleteAuthorById(saved.getId());
+        authorDao.deleteAuthorById(saved.getId());
 
-        assertThat(deleted).isNull();
+        assertThrows(TransientDataAccessResourceException.class, () -> {
+            authorDao.getById(saved.getId());
+        });
     }
 
     @Test
