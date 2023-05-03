@@ -11,6 +11,9 @@ public class OrderLine extends BaseEntity {
     private Integer quantityOrdered;
     @ManyToOne
     private OrderHeader orderHeader;
+    @ManyToOne
+    private Product product;
+
 
     @Override
     public boolean equals(Object o) {
@@ -22,14 +25,25 @@ public class OrderLine extends BaseEntity {
 
         if (!Objects.equals(quantityOrdered, orderLine.quantityOrdered))
             return false;
-        return Objects.equals(orderHeader, orderLine.orderHeader);
+        if (!Objects.equals(orderHeader, orderLine.orderHeader))
+            return false;
+        return Objects.equals(product, orderLine.product);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (quantityOrdered != null ? quantityOrdered.hashCode() : 0);
+        result = 31 * result + (product != null ? product.hashCode() : 0);
         return result;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     public Integer getQuantityOrdered() {
