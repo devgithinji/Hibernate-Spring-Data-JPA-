@@ -3,6 +3,7 @@ package com.densoft.sdjpaintro.domain;
 import jakarta.persistence.*;
 
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @AttributeOverrides({
@@ -47,6 +48,48 @@ public class OrderHeader extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
+
+    @OneToMany(mappedBy = "orderHeader", cascade = CascadeType.PERSIST)
+    private Set<OrderLine> orderLines;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        OrderHeader that = (OrderHeader) o;
+
+        if (!Objects.equals(customer, that.customer)) return false;
+        if (!Objects.equals(shippingAddress, that.shippingAddress))
+            return false;
+        if (!Objects.equals(billToAddress, that.billToAddress))
+            return false;
+        if (orderStatus != that.orderStatus) return false;
+        return Objects.equals(orderLines, that.orderLines);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (customer != null ? customer.hashCode() : 0);
+        result = 31 * result + (shippingAddress != null ? shippingAddress.hashCode() : 0);
+        result = 31 * result + (billToAddress != null ? billToAddress.hashCode() : 0);
+        result = 31 * result + (orderStatus != null ? orderStatus.hashCode() : 0);
+        result = 31 * result + (orderLines != null ? orderLines.hashCode() : 0);
+        return result;
+    }
+
+    public Set<OrderLine> getOrderLines() {
+        return orderLines;
+    }
+
+    public void setOrderLines(Set<OrderLine> orderLines) {
+        this.orderLines = orderLines;
+    }
+
+
+
     public String getCustomer() {
         return customer;
     }
@@ -79,29 +122,4 @@ public class OrderHeader extends BaseEntity {
         this.orderStatus = orderStatus;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        OrderHeader that = (OrderHeader) o;
-
-        if (!Objects.equals(customer, that.customer)) return false;
-        if (!Objects.equals(shippingAddress, that.shippingAddress))
-            return false;
-        if (!Objects.equals(billToAddress, that.billToAddress))
-            return false;
-        return orderStatus == that.orderStatus;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (customer != null ? customer.hashCode() : 0);
-        result = 31 * result + (shippingAddress != null ? shippingAddress.hashCode() : 0);
-        result = 31 * result + (billToAddress != null ? billToAddress.hashCode() : 0);
-        result = 31 * result + (orderStatus != null ? orderStatus.hashCode() : 0);
-        return result;
-    }
 }
