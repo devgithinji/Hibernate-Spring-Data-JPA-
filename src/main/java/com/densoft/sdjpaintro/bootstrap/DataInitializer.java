@@ -12,6 +12,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.util.stream.IntStream;
+
 @Profile({"local", "default"})
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -40,6 +42,11 @@ public class DataInitializer implements CommandLineRunner {
             System.out.printf("Book Id: %d%n", book.getId());
             System.out.printf("Book Title: %s%n", book.getTitle());
             System.out.printf("Book Publisher: %s%n", book.getPublisher());
+        });
+
+        IntStream.rangeClosed(1, 100).forEach(value -> {
+            Book newBook = new Book("Book " + value, "Author " + value, "pub " + value, null);
+            bookRepository.save(newBook);
         });
 
         AuthorUuid authorUuid = new AuthorUuid();
