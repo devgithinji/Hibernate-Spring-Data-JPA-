@@ -1,21 +1,13 @@
 package com.densoft.sdjpaintro.domain;
 
 import jakarta.persistence.*;
+
+import java.util.Objects;
+
 @Entity
-public class OrderHeader {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class OrderHeader extends BaseEntity {
 
     private String customer;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getCustomer() {
         return customer;
@@ -29,16 +21,16 @@ public class OrderHeader {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
         OrderHeader that = (OrderHeader) o;
 
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        return customer != null ? customer.equals(that.customer) : that.customer == null;
+        return Objects.equals(customer, that.customer);
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
+        int result = super.hashCode();
         result = 31 * result + (customer != null ? customer.hashCode() : 0);
         return result;
     }
